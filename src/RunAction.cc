@@ -26,6 +26,7 @@ RunAction::RunAction() : G4UserRunAction() {
   analysisManager->CreateNtupleDColumn("CrystalPosY", fCrystalPosY);
   analysisManager->CreateNtupleDColumn("CrystalPosZ", fCrystalPosZ);
   analysisManager->CreateNtupleIColumn("CrystalPDG", fCrystalPDGs);
+  analysisManager->CreateNtupleIColumn("CrystalTrackID", fCrystalTrackIDs);
   analysisManager->CreateNtupleIColumn("CrystalParentID", fCrystalParentIDs);
   analysisManager->CreateNtupleDColumn("CrystalDirX", fCrystalDirX);
   analysisManager->CreateNtupleDColumn("CrystalDirY", fCrystalDirY);

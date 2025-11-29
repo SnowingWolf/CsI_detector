@@ -1,9 +1,21 @@
+import json
 import os
 
 import awkward as ak
 import numpy as np
 import pandas as pd
 import uproot
+
+
+def load_config(config_file="data_config.json"):
+    """加载配置文件"""
+    if not os.path.exists(config_file):
+        raise FileNotFoundError(f"Config file '{config_file}' not found.")
+
+    with open(config_file, "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    return config
 
 
 def load_process_map(map_file):
@@ -40,57 +52,44 @@ def decode_crystal_id(crystal_ids):
     return ix, iy, iz
 
 
-def load_and_process_data(root_file, cache=True):
+def load_and_process_data(root_file, cache=True, config_file="data_config.json", return_awkward=True):
     """
     加载 ROOT 文件并进行预处理
-    返回: (data_ak, df_hits, process_map, num_events)
+
+    返回: (data_ak, df_hits, df_primaries, process_map, num_events)
+    或者 (df_hits, df_primaries, process_map, num_events) 如果 return_awkward=False
+
+    参数:
+        root_file: ROOT文件路径
+        cache: 是否使用缓存
+        config_file: 配置文件路径
+        return_awkward: 是否返回awkward数组（默认True）
     """
     if not os.path.exists(root_file):
         raise FileNotFoundError(f"File '{root_file}' not found.")
 
+    # 加载配置
+    config = load_config(config_file)
+
     base_name = os.path.splitext(root_file)[0]
-    map_file = f"{base_name}_ProcessIDMap.txt"
+    map_file = base_name + config["cache_suffix"]["process_map"]
     process_map = load_process_map(map_file)
 
     # 缓存文件路径
-    hits_cache = f"{base_name}_hits.parquet"
-    primaries_cache = f"{base_name}_primaries.parquet"
+    hits_cache = base_name + config["cache_suffix"]["hits"]
+    primaries_cache = base_name + config["cache_suffix"]["primaries"]
 
     # 1. 加载 ROOT 数据 (Awkward Array) - 总是需要用于事件级统计
     print(f"Opening ROOT file: {root_file}...")
     file = uproot.open(root_file)
-    if "CsI;1" not in file:
-        raise ValueError(f"TTree 'CsI' not found in file.")
+    tree_name = config["tree_name"] + ";1"
+    if tree_name not in file:
+        raise ValueError(f"TTree '{config['tree_name']}' not found in file.")
 
-    tree = file["CsI"]
-    # 读取所有分支
-    branches = [
-        "EventID",
-        "TotalEdep",
-        "HitCount",
-        "CrystalID",
-        "CrystalEdep",
-        "CrystalTime",
-        "CrystalPosX",
-        "CrystalPosY",
-        "CrystalPosZ",
-        "CrystalPDG",
-        "CrystalParentID",
-        "CrystalDirX",
-        "CrystalDirY",
-        "CrystalDirZ",
-        "CrystalKineticEnergy",
-        "CrystalProcessID",
-        # Primary Particle Branches
-        "PrimaryPDG",
-        "PrimaryEnergy",
-        "PrimaryPosX",
-        "PrimaryPosY",
-        "PrimaryPosZ",
-        "PrimaryDirX",
-        "PrimaryDirY",
-        "PrimaryDirZ",
-    ]
+    tree = file[tree_name]
+
+    # 从配置文件读取所有需要的分支
+    branches = config["branches"]["event_level"] + config["branches"]["crystal_hits"] + config["branches"]["primary_particles"]
 
     # 读取为 awkward array
     data_ak = tree.arrays(branches, library="ak")
@@ -116,46 +115,14 @@ def load_and_process_data(root_file, cache=True):
         print("Converting to Pandas DataFrames...")
 
         # --- 处理 Hits ---
-        # 选取需要的列（包括新增的字段）
-        arrays_to_flatten = data_ak[
-            [
-                "CrystalEdep",
-                "CrystalTime",
-                "CrystalPosX",
-                "CrystalPosY",
-                "CrystalPosZ",
-                "CrystalPDG",
-                "CrystalParentID",
-                "CrystalDirX",
-                "CrystalDirY",
-                "CrystalDirZ",
-                "CrystalKineticEnergy",
-                "CrystalProcessID",
-                "CrystalID",
-            ]
-        ]
+        # 从配置读取需要处理的Crystal分支
+        crystal_branches = config["branches"]["crystal_hits"]
+        arrays_to_flatten = data_ak[crystal_branches]
 
         df_hits = ak.to_dataframe(arrays_to_flatten)
 
-        # 重命名列
-        df_hits.rename(
-            columns={
-                "CrystalEdep": "edep",
-                "CrystalTime": "time",
-                "CrystalPosX": "posX",
-                "CrystalPosY": "posY",
-                "CrystalPosZ": "posZ",
-                "CrystalPDG": "pdg",
-                "CrystalParentID": "parentID",
-                "CrystalDirX": "dirX",
-                "CrystalDirY": "dirY",
-                "CrystalDirZ": "dirZ",
-                "CrystalKineticEnergy": "kineticEnergy",
-                "CrystalProcessID": "processID",
-                "CrystalID": "crystalID",
-            },
-            inplace=True,
-        )
+        # 使用配置文件中的映射重命名列
+        df_hits.rename(columns=config["column_mapping"]["hits"], inplace=True)
 
         # 处理 EventID
         df_hits.reset_index(inplace=True)
@@ -169,22 +136,13 @@ def load_and_process_data(root_file, cache=True):
 
         # --- 处理 Primaries ---
         print("Processing Primary particles...")
-        primary_arrays = data_ak[["PrimaryPDG", "PrimaryEnergy", "PrimaryPosX", "PrimaryPosY", "PrimaryPosZ", "PrimaryDirX", "PrimaryDirY", "PrimaryDirZ"]]
+        primary_branches = config["branches"]["primary_particles"]
+        primary_arrays = data_ak[primary_branches]
 
         df_primaries = ak.to_dataframe(primary_arrays)
-        df_primaries.rename(
-            columns={
-                "PrimaryPDG": "pdg",
-                "PrimaryEnergy": "energy",
-                "PrimaryPosX": "posX",
-                "PrimaryPosY": "posY",
-                "PrimaryPosZ": "posZ",
-                "PrimaryDirX": "dirX",
-                "PrimaryDirY": "dirY",
-                "PrimaryDirZ": "dirZ",
-            },
-            inplace=True,
-        )
+
+        # 使用配置文件中的映射重命名列
+        df_primaries.rename(columns=config["column_mapping"]["primaries"], inplace=True)
 
         df_primaries.reset_index(inplace=True)
         df_primaries.rename(columns={"entry": "EventID", "subentry": "primary_idx"}, inplace=True)
@@ -195,4 +153,71 @@ def load_and_process_data(root_file, cache=True):
             df_hits.to_parquet(hits_cache)
             df_primaries.to_parquet(primaries_cache)
 
-    return data_ak, df_hits, df_primaries, process_map, num_events
+    # 返回结果
+    if return_awkward:
+        return data_ak, df_hits, df_primaries, process_map, num_events
+    else:
+        return df_hits, df_primaries, process_map, num_events
+
+
+def load_awkward_only(root_file, config_file="data_config.json"):
+    """
+    只加载并返回awkward数组，不进行DataFrame转换
+    适合只需要事件级别分析或原始数据结构的场景
+
+    返回: (data_ak, process_map, num_events)
+    """
+    if not os.path.exists(root_file):
+        raise FileNotFoundError(f"File '{root_file}' not found.")
+
+    # 加载配置
+    config = load_config(config_file)
+
+    base_name = os.path.splitext(root_file)[0]
+    map_file = base_name + config["cache_suffix"]["process_map"]
+    process_map = load_process_map(map_file)
+
+    # 加载 ROOT 数据
+    print(f"Opening ROOT file: {root_file}...")
+    file = uproot.open(root_file)
+    tree_name = config["tree_name"] + ";1"
+    if tree_name not in file:
+        raise ValueError(f"TTree '{config['tree_name']}' not found in file.")
+
+    tree = file[tree_name]
+
+    # 从配置文件读取所有需要的分支
+    branches = config["branches"]["event_level"] + config["branches"]["crystal_hits"] + config["branches"]["primary_particles"]
+
+    # 读取为 awkward array
+    data_ak = tree.arrays(branches, library="ak")
+    num_events = len(data_ak)
+    print(f"Successfully loaded {num_events} events (awkward array only).")
+
+    return data_ak, process_map, num_events
+
+
+def get_awkward_arrays(data_ak, config_file="data_config.json"):
+    """
+    从完整的awkward数组中提取不同部分的子数组
+
+    参数:
+        data_ak: 完整的awkward数组
+        config_file: 配置文件路径
+
+    返回: (event_data, hits_data, primary_data)
+        - event_data: 事件级别数据 (EventID, TotalEdep, HitCount等)
+        - hits_data: Crystal hit数据
+        - primary_data: Primary粒子数据
+    """
+    config = load_config(config_file)
+
+    event_branches = config["branches"]["event_level"]
+    hit_branches = config["branches"]["crystal_hits"]
+    primary_branches = config["branches"]["primary_particles"]
+
+    event_data = data_ak[event_branches]
+    hits_data = data_ak[hit_branches]
+    primary_data = data_ak[primary_branches]
+
+    return event_data, hits_data, primary_data

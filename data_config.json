@@ -1,0 +1,80 @@
+{
+    "branches": {
+        "event_level": [
+            "EventID",
+            "TotalEdep",
+            "HitCount"
+        ],
+        "crystal_hits": [
+            "CrystalID",
+            "CrystalEdep",
+            "CrystalTime",
+            "CrystalPosX",
+            "CrystalPosY",
+            "CrystalPosZ",
+            "CrystalPDG",
+            "CrystalParentID",
+            "CrystalDirX",
+            "CrystalDirY",
+            "CrystalDirZ",
+            "CrystalKineticEnergy",
+            "CrystalProcessID",
+            "CrystalTrackLength",
+            "CrystalTrackID"
+        ],
+        "primary_particles": [
+            "PrimaryPDG",
+            "PrimaryEnergy",
+            "PrimaryPosX",
+            "PrimaryPosY",
+            "PrimaryPosZ",
+            "PrimaryDirX",
+            "PrimaryDirY",
+            "PrimaryDirZ"
+        ]
+    },
+    "column_mapping": {
+        "hits": {
+            "CrystalEdep": "edep",
+            "CrystalTime": "time",
+            "CrystalPosX": "posX",
+            "CrystalPosY": "posY",
+            "CrystalPosZ": "posZ",
+            "CrystalPDG": "pdg",
+            "CrystalParentID": "parentID",
+            "CrystalDirX": "dirX",
+            "CrystalDirY": "dirY",
+            "CrystalDirZ": "dirZ",
+            "CrystalKineticEnergy": "kineticEnergy",
+            "CrystalProcessID": "processID",
+            "CrystalID": "crystalID",
+            "CrystalTrackLength": "trackLength",
+            "CrystalTrackID": "trackID"
+        },
+        "primaries": {
+            "PrimaryPDG": "pdg",
+            "PrimaryEnergy": "energy",
+            "PrimaryPosX": "posX",
+            "PrimaryPosY": "posY",
+            "PrimaryPosZ": "posZ",
+            "PrimaryDirX": "dirX",
+            "PrimaryDirY": "dirY",
+            "PrimaryDirZ": "dirZ"
+        }
+    },
+    "particle_names": {
+        "22": "Gamma",
+        "11": "Electron",
+        "-11": "Positron",
+        "13": "Muon-",
+        "-13": "Muon+",
+        "2112": "Neutron",
+        "2212": "Proton"
+    },
+    "tree_name": "CsI",
+    "cache_suffix": {
+        "hits": "_hits.parquet",
+        "primaries": "_primaries.parquet",
+        "process_map": "_ProcessIDMap.txt"
+    }
+}

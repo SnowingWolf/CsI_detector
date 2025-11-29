@@ -22,6 +22,7 @@ public:
   std::vector<double> &GetCrystalPosY() { return fCrystalPosY; }
   std::vector<double> &GetCrystalPosZ() { return fCrystalPosZ; }
   std::vector<int> &GetCrystalPDGs() { return fCrystalPDGs; }
+  std::vector<int> &GetCrystalTrackIDs() { return fCrystalTrackIDs; }
   std::vector<int> &GetCrystalParentIDs() { return fCrystalParentIDs; }
   std::vector<double> &GetCrystalDirX() { return fCrystalDirX; }
   std::vector<double> &GetCrystalDirY() { return fCrystalDirY; }
@@ -52,6 +53,7 @@ private:
   std::vector<double> fCrystalPosY;
   std::vector<double> fCrystalPosZ;
   std::vector<int> fCrystalPDGs;
+  std::vector<int> fCrystalTrackIDs;
   std::vector<int> fCrystalParentIDs;
   std::vector<double> fCrystalDirX;
   std::vector<double> fCrystalDirY;

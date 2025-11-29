@@ -58,6 +58,7 @@ void EventAction::EndOfEventAction(const G4Event *event) {
   auto &crystalPosY = nonConstRunAction->GetCrystalPosY();
   auto &crystalPosZ = nonConstRunAction->GetCrystalPosZ();
   auto &crystalPDGs = nonConstRunAction->GetCrystalPDGs();
+  auto &crystalTrackIDs = nonConstRunAction->GetCrystalTrackIDs();
   auto &crystalParentIDs = nonConstRunAction->GetCrystalParentIDs();
   auto &crystalDirX = nonConstRunAction->GetCrystalDirX();
   auto &crystalDirY = nonConstRunAction->GetCrystalDirY();
@@ -84,6 +85,7 @@ void EventAction::EndOfEventAction(const G4Event *event) {
   crystalPosY.clear();
   crystalPosZ.clear();
   crystalPDGs.clear();
+  crystalTrackIDs.clear();
   crystalParentIDs.clear();
   crystalDirX.clear();
   crystalDirY.clear();
@@ -138,6 +140,7 @@ void EventAction::EndOfEventAction(const G4Event *event) {
       crystalPosY.push_back(hit->GetPos().y());
       crystalPosZ.push_back(hit->GetPos().z());
       crystalPDGs.push_back(hit->GetPDG());
+      crystalTrackIDs.push_back(hit->GetTrackID());
       crystalParentIDs.push_back(hit->GetParentID());
       crystalDirX.push_back(hit->GetMomentumDirection().x());
       crystalDirY.push_back(hit->GetMomentumDirection().y());
