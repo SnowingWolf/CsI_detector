@@ -47,6 +47,10 @@ RunAction::RunAction() : G4UserRunAction() {
   analysisManager->CreateNtupleDColumn("PrimaryDirY", fPrimaryDirY);
   analysisManager->CreateNtupleDColumn("PrimaryDirZ", fPrimaryDirZ);
 
+  // Photon Exit Columns
+  analysisManager->CreateNtupleIColumn("PhotonExitCrystalID", fPhotonExitCrystalIDs);
+  analysisManager->CreateNtupleIColumn("PhotonExitCount", fPhotonExitCounts);
+
   analysisManager->FinishNtuple();
 }
 RunAction::~RunAction() { delete G4AnalysisManager::Instance(); }

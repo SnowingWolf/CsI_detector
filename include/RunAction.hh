@@ -43,6 +43,10 @@ public:
   std::vector<double> &GetPrimaryDirY() { return fPrimaryDirY; }
   std::vector<double> &GetPrimaryDirZ() { return fPrimaryDirZ; }
 
+  // Photon Exit Getters
+  std::vector<int> &GetPhotonExitCrystalIDs() { return fPhotonExitCrystalIDs; }
+  std::vector<int> &GetPhotonExitCounts() { return fPhotonExitCounts; }
+
   int GetProcessID(const G4String &processName);
 
 private:
@@ -71,6 +75,10 @@ private:
   std::vector<double> fPrimaryDirX;
   std::vector<double> fPrimaryDirY;
   std::vector<double> fPrimaryDirZ;
+
+  // Photon Exit Vectors
+  std::vector<int> fPhotonExitCrystalIDs;
+  std::vector<int> fPhotonExitCounts;
 
   std::map<G4String, int> fProcessMap;
 };

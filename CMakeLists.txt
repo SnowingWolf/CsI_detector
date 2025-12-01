@@ -17,6 +17,7 @@ add_executable(CsI_Axion
   src/DetectorSD.cc
   src/PrimaryGeneratorAction.cc
   src/TrackingAction.cc
+  src/SteppingAction.cc
   src/ActionInitialization.cc
   src/Trajectory.cc
   src/RunAction.cc
