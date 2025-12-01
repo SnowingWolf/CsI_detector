@@ -1,6 +1,7 @@
 #include "EventAction.hh"
 #include "DetectorSD.hh"
 #include "RunAction.hh"
+#include "SteppingAction.hh"
 
 #include "G4Event.hh"
 #include "G4RunManager.hh"
@@ -58,12 +59,14 @@ void EventAction::EndOfEventAction(const G4Event *event) {
   auto &crystalPosY = nonConstRunAction->GetCrystalPosY();
   auto &crystalPosZ = nonConstRunAction->GetCrystalPosZ();
   auto &crystalPDGs = nonConstRunAction->GetCrystalPDGs();
+  auto &crystalTrackIDs = nonConstRunAction->GetCrystalTrackIDs();
   auto &crystalParentIDs = nonConstRunAction->GetCrystalParentIDs();
   auto &crystalDirX = nonConstRunAction->GetCrystalDirX();
   auto &crystalDirY = nonConstRunAction->GetCrystalDirY();
   auto &crystalDirZ = nonConstRunAction->GetCrystalDirZ();
   auto &crystalKineticEnergy = nonConstRunAction->GetCrystalKineticEnergy();
   auto &crystalProcessIDs = nonConstRunAction->GetCrystalProcessIDs();
+  auto &crystalTrackLength = nonConstRunAction->GetCrystalTrackLength();
 
   // Primary Particle Vectors
   auto &primaryPDG = nonConstRunAction->GetPrimaryPDG();
@@ -75,6 +78,10 @@ void EventAction::EndOfEventAction(const G4Event *event) {
   auto &primaryDirY = nonConstRunAction->GetPrimaryDirY();
   auto &primaryDirZ = nonConstRunAction->GetPrimaryDirZ();
 
+  // Photon Exit Vectors
+  auto &photonExitCrystalIDs = nonConstRunAction->GetPhotonExitCrystalIDs();
+  auto &photonExitCounts = nonConstRunAction->GetPhotonExitCounts();
+
   // Clear vectors
   crystalIDs.clear();
   crystalEdeps.clear();
@@ -83,12 +90,14 @@ void EventAction::EndOfEventAction(const G4Event *event) {
   crystalPosY.clear();
   crystalPosZ.clear();
   crystalPDGs.clear();
+  crystalTrackIDs.clear();
   crystalParentIDs.clear();
   crystalDirX.clear();
   crystalDirY.clear();
   crystalDirZ.clear();
   crystalKineticEnergy.clear();
   crystalProcessIDs.clear();
+  crystalTrackLength.clear();
 
   primaryPDG.clear();
   primaryEnergy.clear();
@@ -98,6 +107,9 @@ void EventAction::EndOfEventAction(const G4Event *event) {
   primaryDirX.clear();
   primaryDirY.clear();
   primaryDirZ.clear();
+
+  photonExitCrystalIDs.clear();
+  photonExitCounts.clear();
 
   // Fill Primary Particles
   G4int nVertex = event->GetNumberOfPrimaryVertex();
@@ -136,6 +148,7 @@ void EventAction::EndOfEventAction(const G4Event *event) {
       crystalPosY.push_back(hit->GetPos().y());
       crystalPosZ.push_back(hit->GetPos().z());
       crystalPDGs.push_back(hit->GetPDG());
+      crystalTrackIDs.push_back(hit->GetTrackID());
       crystalParentIDs.push_back(hit->GetParentID());
       crystalDirX.push_back(hit->GetMomentumDirection().x());
       crystalDirY.push_back(hit->GetMomentumDirection().y());
@@ -143,6 +156,7 @@ void EventAction::EndOfEventAction(const G4Event *event) {
       crystalKineticEnergy.push_back(hit->GetKineticEnergy());
       crystalProcessIDs.push_back(
           nonConstRunAction->GetProcessID(hit->GetCreatorProcess()));
+      crystalTrackLength.push_back(hit->GetTrackLength());
     }
   } // Fill Ntuple
   analysisManager->FillNtupleIColumn(0, event->GetEventID());
@@ -150,4 +164,14 @@ void EventAction::EndOfEventAction(const G4Event *event) {
   analysisManager->FillNtupleIColumn(2, crystalIDs.size());
   // vector columns are automatically filled because they are bound by reference
   analysisManager->AddNtupleRow();
+
+  // Fill Photon Exit Counts
+  SteppingAction* steppingAction = const_cast<SteppingAction*>(static_cast<const SteppingAction*>(G4RunManager::GetRunManager()->GetUserSteppingAction()));
+  const auto& exitCounts = steppingAction->GetPhotonExitCounts();
+  for (const auto& pair : exitCounts) {
+      photonExitCrystalIDs.push_back(pair.first);
+      photonExitCounts.push_back(pair.second);
+  }
+  // Reset counts for next event
+  steppingAction->ResetCounts();
 }

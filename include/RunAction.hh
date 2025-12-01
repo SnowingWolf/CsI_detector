@@ -22,6 +22,7 @@ public:
   std::vector<double> &GetCrystalPosY() { return fCrystalPosY; }
   std::vector<double> &GetCrystalPosZ() { return fCrystalPosZ; }
   std::vector<int> &GetCrystalPDGs() { return fCrystalPDGs; }
+  std::vector<int> &GetCrystalTrackIDs() { return fCrystalTrackIDs; }
   std::vector<int> &GetCrystalParentIDs() { return fCrystalParentIDs; }
   std::vector<double> &GetCrystalDirX() { return fCrystalDirX; }
   std::vector<double> &GetCrystalDirY() { return fCrystalDirY; }
@@ -30,6 +31,7 @@ public:
     return fCrystalKineticEnergy;
   }
   std::vector<int> &GetCrystalProcessIDs() { return fCrystalProcessIDs; }
+  std::vector<double> &GetCrystalTrackLength() { return fCrystalTrackLength; }
 
   // Primary Particle Getters
   std::vector<int> &GetPrimaryPDG() { return fPrimaryPDG; }
@@ -41,6 +43,10 @@ public:
   std::vector<double> &GetPrimaryDirY() { return fPrimaryDirY; }
   std::vector<double> &GetPrimaryDirZ() { return fPrimaryDirZ; }
 
+  // Photon Exit Getters
+  std::vector<int> &GetPhotonExitCrystalIDs() { return fPhotonExitCrystalIDs; }
+  std::vector<int> &GetPhotonExitCounts() { return fPhotonExitCounts; }
+
   int GetProcessID(const G4String &processName);
 
 private:
@@ -51,12 +57,14 @@ private:
   std::vector<double> fCrystalPosY;
   std::vector<double> fCrystalPosZ;
   std::vector<int> fCrystalPDGs;
+  std::vector<int> fCrystalTrackIDs;
   std::vector<int> fCrystalParentIDs;
   std::vector<double> fCrystalDirX;
   std::vector<double> fCrystalDirY;
   std::vector<double> fCrystalDirZ;
   std::vector<double> fCrystalKineticEnergy;
   std::vector<int> fCrystalProcessIDs;
+  std::vector<double> fCrystalTrackLength;
 
   // Primary Particle Vectors
   std::vector<int> fPrimaryPDG;
@@ -67,6 +75,10 @@ private:
   std::vector<double> fPrimaryDirX;
   std::vector<double> fPrimaryDirY;
   std::vector<double> fPrimaryDirZ;
+
+  // Photon Exit Vectors
+  std::vector<int> fPhotonExitCrystalIDs;
+  std::vector<int> fPhotonExitCounts;
 
   std::map<G4String, int> fProcessMap;
 };

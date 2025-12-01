@@ -1,15 +1,42 @@
 // PhysicsList.cc
 #include "PhysicsList.hh"
-#include "G4EmStandardPhysics.hh"
-// 必须包含单位头文件，确保 mm 可用
+#include "G4DecayPhysics.hh"
+#include "G4EmStandardPhysics_option4.hh"
+#include "G4OpticalPhysics.hh"
 #include "G4SystemOfUnits.hh"
 
 PhysicsList::PhysicsList()
-    : FTFP_BERT() // 调用父类构造函数
+    : G4VModularPhysicsList() // 从头构建，不继承FTFP_BERT
 {
-  SetVerboseLevel(1); // 输出详细程度
-  // 如果想替换默认电磁物理过程
-  RegisterPhysics(new G4EmStandardPhysics());
+  fMessenger =
+      new G4GenericMessenger(this, "/CsI/physics/", "Physics List Control");
+  fMessenger->DeclareMethod("optical", &PhysicsList::SetOpticalPhysics,
+                            "Enable Optical Physics");
+  fMessenger->DeclareMethod("verbose", &PhysicsList::SetVerboseLevel,
+                            "Set physics list verbose level");
+
+  SetVerboseLevel(1);
+
+  // 对于低能电子/正电子（0-4 MeV）模拟，只需要：
+  // 1. 高精度电磁物理（option4是最精确的标准选项）
+  RegisterPhysics(new G4EmStandardPhysics_option4());
+
+  // 2. 粒子衰变（包括正电子湮灭）
+  RegisterPhysics(new G4DecayPhysics());
+
+  // 3. 光学物理 (默认开启，方便调试)
+  // RegisterPhysics(new G4OpticalPhysics());
+
+  // 设置次级粒子产生阈值（可选，提高精度）
+  SetDefaultCutValue(0.001 * mm); // 默认产生次级粒子的阈值
 }
 
-PhysicsList::~PhysicsList() {}
+PhysicsList::~PhysicsList() { delete fMessenger; }
+
+void PhysicsList::SetOpticalPhysics(G4bool on) {
+  G4cout << ">>> SetOpticalPhysics called with: " << on << '\n';
+  if (on) {
+    RegisterPhysics(new G4OpticalPhysics());
+    G4cout << ">>> Optical Physics Enabled!" << '\n';
+  }
+}

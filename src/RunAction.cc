@@ -26,6 +26,7 @@ RunAction::RunAction() : G4UserRunAction() {
   analysisManager->CreateNtupleDColumn("CrystalPosY", fCrystalPosY);
   analysisManager->CreateNtupleDColumn("CrystalPosZ", fCrystalPosZ);
   analysisManager->CreateNtupleIColumn("CrystalPDG", fCrystalPDGs);
+  analysisManager->CreateNtupleIColumn("CrystalTrackID", fCrystalTrackIDs);
   analysisManager->CreateNtupleIColumn("CrystalParentID", fCrystalParentIDs);
   analysisManager->CreateNtupleDColumn("CrystalDirX", fCrystalDirX);
   analysisManager->CreateNtupleDColumn("CrystalDirY", fCrystalDirY);
@@ -33,6 +34,8 @@ RunAction::RunAction() : G4UserRunAction() {
   analysisManager->CreateNtupleDColumn("CrystalKineticEnergy",
                                        fCrystalKineticEnergy);
   analysisManager->CreateNtupleIColumn("CrystalProcessID", fCrystalProcessIDs);
+  analysisManager->CreateNtupleDColumn("CrystalTrackLength",
+                                       fCrystalTrackLength);
 
   // Primary Particle Columns
   analysisManager->CreateNtupleIColumn("PrimaryPDG", fPrimaryPDG);
@@ -43,6 +46,10 @@ RunAction::RunAction() : G4UserRunAction() {
   analysisManager->CreateNtupleDColumn("PrimaryDirX", fPrimaryDirX);
   analysisManager->CreateNtupleDColumn("PrimaryDirY", fPrimaryDirY);
   analysisManager->CreateNtupleDColumn("PrimaryDirZ", fPrimaryDirZ);
+
+  // Photon Exit Columns
+  analysisManager->CreateNtupleIColumn("PhotonExitCrystalID", fPhotonExitCrystalIDs);
+  analysisManager->CreateNtupleIColumn("PhotonExitCount", fPhotonExitCounts);
 
   analysisManager->FinishNtuple();
 }
