@@ -104,15 +104,20 @@ G4VPhysicalVolume *DetectorConstruction::Construct() {
 
   // For Geant4 11+
   mptCsI->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 1000. * ns);
-  mptCsI->AddConstProperty("SCINTILLATIONCOMPONENT1", 1.0);
+  G4double component[nEntries] = {1.0, 1.0};
+  mptCsI->AddProperty("SCINTILLATIONCOMPONENT1", photonEnergy, component,
+                      nEntries);
 
   // For older Geant4 versions (compatibility)
   mptCsI->AddConstProperty("FASTTIMECONSTANT", 1000. * ns);
   mptCsI->AddConstProperty("SLOWTIMECONSTANT", 1000. * ns);
   mptCsI->AddConstProperty("YIELDRATIO", 1.0);
+  G4double fastComponent[nEntries] = {1.0, 1.0};
+  mptCsI->AddProperty("FASTCOMPONENT", photonEnergy, fastComponent, nEntries);
 
   // Absorption Length
-  G4double absLength[nEntries] = {35. * cm, 35. * cm}; // Transparent
+  G4double absLength[nEntries] = {
+      100. * cm, 100. * cm}; // Increase to allow more photons to reach surface
   mptCsI->AddProperty("ABSLENGTH", photonEnergy, absLength, nEntries);
 
   csiMat->SetMaterialPropertiesTable(mptCsI);
@@ -127,31 +132,32 @@ G4VPhysicalVolume *DetectorConstruction::Construct() {
 
   // --- Optical Surface Properties ---
   // 定义晶体表面的光学性质（例如：抛光表面，或者包裹了反射层）
-  G4OpticalSurface *opSurface = new G4OpticalSurface("CsISurface");
-  opSurface->SetType(dielectric_dielectric); // 介质-介质界面
-  opSurface->SetFinish(
-      ground); // 表面处理：ground (磨砂/粗糙) 或 polished (抛光)
-  opSurface->SetModel(unified);  // 统一模型 (Unified Model)
-  opSurface->SetSigmaAlpha(0.1); // 表面粗糙度 (弧度)，仅对 ground 有效
+  // G4OpticalSurface *opSurface = new G4OpticalSurface("CsISurface");
+  // opSurface->SetType(dielectric_dielectric); // 介质-介质界面
+  // opSurface->SetFinish(
+  //     ground); // 表面处理：ground (磨砂/粗糙) 或 polished (抛光)
+  // opSurface->SetModel(unified);  // 统一模型 (Unified Model)
+  // opSurface->SetSigmaAlpha(0.1); // 表面粗糙度 (弧度)，仅对 ground 有效
 
   // 定义表面材质属性 (例如反射率)
-  G4MaterialPropertiesTable *mptSurface = new G4MaterialPropertiesTable();
+  // G4MaterialPropertiesTable *mptSurface = new G4MaterialPropertiesTable();
   // 假设全反射或者部分反射
   // 如果是抛光表面在空气中，通常不需要额外设置 REFLECTIVITY，因为 Fresnel
   // 已经处理了 但如果是包裹了特氟龙(Teflon)等反射层，可以设置 dielectric_metal
   // 或者 dielectric_dielectric + REFLECTIVITY
 
   // 示例：设置反射率 (Reflectivity) 和 效率 (Efficiency)
-  G4double reflectivity[nEntries] = {0.98, 0.98};
+  // G4double reflectivity[nEntries] = {0.0, 0.0}; // 设为0以允许光子离开
   // G4double efficiency[nEntries] = {0.0, 0.0}; //
   // 探测效率（如果是光电倍增管阴极则不为0）
-  mptSurface->AddProperty("REFLECTIVITY", photonEnergy, reflectivity, nEntries);
+  // mptSurface->AddProperty("REFLECTIVITY", photonEnergy, reflectivity,
+  // nEntries);
 
-  opSurface->SetMaterialPropertiesTable(mptSurface);
+  // opSurface->SetMaterialPropertiesTable(mptSurface);
 
   // 将光学表面应用到 CsI 逻辑体表面 (Skin Surface)
   // 这意味着晶体的所有面都具有这种性质
-  new G4LogicalSkinSurface("CsISkinSurface", csiLV, opSurface);
+  // new G4LogicalSkinSurface("CsISkinSurface", csiLV, opSurface);
   // ----------------------------------
 
   // 阵列中心对齐到世界中心

@@ -29,7 +29,16 @@
 # 设置光子 (opticalphoton) 为青色
 /vis/modeling/trajectories/drawByParticleID-0/set opticalphoton cyan
 
-
+# ==============================================================
+# 过滤光子显示 (如果光子太多导致卡顿或看不清，请取消注释以下命令)
+# ==============================================================
+# 创建粒子过滤器
+# /vis/filtering/trajectories/create/particleFilter
+# 添加光子到过滤器
+# /vis/filtering/trajectories/particleFilter-0/add opticalphoton
+# 反转过滤器 (true 表示隐藏列表中的粒子，false 表示只显示列表中的粒子)
+# /vis/filtering/trajectories/particleFilter-0/invert true
+# ==============================================================
 
 # Draw smooth trajectories at end of event, showing trajectory points
 # as markers 2 pixels wide:
@@ -39,4 +48,5 @@
 /vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
 
 # To superimpose all of the events from a given run:
-/vis/scene/endOfEventAction accumulate 10000
+/vis/ogl/set/displayListLimit 1000
+/vis/scene/endOfEventAction accumulate 1000
